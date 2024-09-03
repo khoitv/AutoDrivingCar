@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AutoDrivingCar
+namespace Domain
 {
     public class Point
     {
@@ -16,7 +16,5 @@ namespace AutoDrivingCar
             X = x;
             Y = y;
         }
-
-        public override string ToString() => $"({this.X},{this.Y})";
     }
 }

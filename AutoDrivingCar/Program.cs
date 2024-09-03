@@ -1,15 +1,31 @@
-﻿using AutoDrivingCar;
+﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Runtime.ConstrainedExecution;
-Console.WriteLine("Welcome to Auto Driving Car Simulation!");
+using Infratructure;
+using Application.Interfaces;
+using Domain;
+using Application.Commons;
 
-Build();
-void Build()
+HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+builder.Services.AddServices();
+
+using IHost host = builder.Build();
+Build(host.Services);
+await host.RunAsync();
+static void Build(IServiceProvider hostProvider)
 {
+    Console.WriteLine("Welcome to Auto Driving Car Simulation!");
+    using IServiceScope serviceScope = hostProvider.CreateScope();
+    IServiceProvider provider = serviceScope.ServiceProvider;
+    ISimulatorService simulatorService = provider.GetRequiredService<ISimulatorService>();
     var field = new Field();
     Console.WriteLine("Please enter the width and height of the simulation field in x y format: ");
     var boundary = Console.ReadLine();
-    while (!field.SetBoundary(boundary))
+    IFieldRepository fieldRepository = simulatorService.FieldRepository;
+    ICarRepository carRepository = simulatorService.CarRepository;
+
+    while (!fieldRepository.SetBoundary(field, boundary))
     {
         Console.WriteLine($"Boundary format is invalid ");
         Console.WriteLine("Please enter the width and height of the simulation field in x y format: ");
@@ -21,10 +37,12 @@ void Build()
     Console.WriteLine("[1] Add a car to field");
     Console.WriteLine("[2] Run simulation");
 
+
     var selection = Console.ReadLine();
     while (selection == "1")
     {
         Console.WriteLine("Please enter the name of the car: ");
+        var car = new Car();
         var carName = Console.ReadLine();
         while (field.IsNameDuplicated(carName))
         {
@@ -33,11 +51,10 @@ void Build()
             carName = Console.ReadLine();
         }
 
-        var car = new Car(carName);
-
+        car.Name = carName;
         Console.WriteLine($"Please enter initial position of car {carName} in x y Direction format: ");
         var position = Console.ReadLine();
-        while (!car.SetPosition(position))
+        while (!carRepository.InitPosition(car, position))
         {
             Console.WriteLine($"Position format is invalid ");
             Console.WriteLine($"Please enter initial position of car {carName} in x y Direction format: ");
@@ -46,7 +63,7 @@ void Build()
 
         Console.WriteLine($"Please enter the commands for car {carName}: ");
         car.Commands = Console.ReadLine();
-        field.AddCar(car);
+        fieldRepository.AddCar(field, car);
 
         Console.WriteLine("Your current list of cars are: ");
         Console.WriteLine("[1] Add a car to field");
@@ -61,12 +78,12 @@ void Build()
             Console.WriteLine($"- {car.Display()}");
         });
 
-        field.Simulate();
+        simulatorService.Simulate(field);
 
         Console.WriteLine("After simulation, the result is: ");
         field.Cars.ForEach(car =>
         {
-            Console.WriteLine($"- {car.ToString()}");
+            Console.WriteLine($"- {car.Result()}");
         });
 
         Console.WriteLine("[1] Start over");
@@ -74,11 +91,12 @@ void Build()
         selection = Console.ReadLine();
         if (selection == "1")
         {
-            Build();
+            Build(provider);
         }
         else if (selection == "2")
         {
             Console.WriteLine(" Thank you for running the simulation. Goodbye!");
         }
     }
+
 }

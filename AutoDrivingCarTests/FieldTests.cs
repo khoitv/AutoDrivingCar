@@ -5,6 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Domain;
+using Application.Interfaces;
+using Infratructure;
+using Application.Commons;
 
 namespace AutoDrivingCar.Tests
 {
@@ -12,37 +16,36 @@ namespace AutoDrivingCar.Tests
     public class FieldTests
     {
         [TestMethod()]
-        public void SimulateTest()
+        public void Scenarior1()
         {
-            Field field = new Field();
-            field.MaxBoundary = new Point(10, 10);
-            var carA = new Car("A");
-            carA.SetPosition("1 2 N");
-            carA.Commands = "FFRFFFRRLF";
-            field.AddCar(carA);
+            var carA = new Car() { Name = "A", Position = new Point(1, 2), Direction = 'N', Commands = "FFRFFFRRLF" };
+            var field = new Field() { MaxBoundary = new Point(10, 10) };
+            field.Cars.Add(carA);
 
-            field.Simulate();
+            var fieldRepo = new FieldRepository();
+            var carRepo = new CarRepository();
+            var simulatorService = new SimulatorService(fieldRepo, carRepo);
+            var act = simulatorService.Simulate(field);
+
+            var car = act.Cars.FirstOrDefault();
             Assert.AreEqual(4, carA.Position.X);
             Assert.AreEqual(3, carA.Position.Y);
             Assert.AreEqual('S', carA.Direction);
         }
 
         [TestMethod()]
-        public void SimulateTwoCarsTest()
+        public void Scenarior2Test()
         {
-            Field field = new Field();
-            field.MaxBoundary = new Point(10, 10);
-            var carA = new Car("A");
-            carA.SetPosition("1 2 N");
-            carA.Commands = "FFRFFFRRLF";
-            field.AddCar(carA);
+            var carA = new Car() { Name = "A", Position = new Point(1, 2), Direction = 'N', Commands = "FFRFFFRRLF" };
+            var carB = new Car() { Name = "B", Position = new Point(7, 8), Direction = 'W', Commands = "FFLFFFFFFF" };
+            var field = new Field() { MaxBoundary = new Point(10, 10) };
+            field.Cars.Add(carA);
+            field.Cars.Add(carB);
+            var fieldRepo = new FieldRepository();
+            var carRepo = new CarRepository();
+            var simulatorService = new SimulatorService(fieldRepo, carRepo);
+            var act = simulatorService.Simulate(field);
 
-            var carB = new Car("B");
-            carB.SetPosition("7 8 W");
-            carB.Commands = "FFLFFFFFFF";
-            field.AddCar(carB);
-
-            field.Simulate();
             Assert.AreEqual(4, carA.Position.X);
             Assert.AreEqual(3, carA.Position.Y);
             Assert.AreEqual('S', carA.Direction);
@@ -53,27 +56,23 @@ namespace AutoDrivingCar.Tests
             Assert.AreEqual('S', carB.Direction);
         }
 
+
         [TestMethod()]
         public void ThreeCarsTest()
         {
-            Field field = new Field();
-            field.MaxBoundary = new Point(10, 10);
-            var carA = new Car("A");
-            carA.SetPosition("1 2 N");
-            carA.Commands = "FFRFFFRRLF";
-            field.AddCar(carA);
+            var carA = new Car() { Name = "A", Position = new Point(1, 2), Direction = 'N', Commands = "FFRFFFRRLF" };
+            var carB = new Car() { Name = "B", Position = new Point(7, 8), Direction = 'W', Commands = "FFLFFFFFFF" };
+            var carC = new Car() { Name = "C", Position = new Point(7, 6), Direction = 'S', Commands = "FFRFFFF" };
+            var field = new Field() { MaxBoundary = new Point(10, 10) };
+            field.Cars.Add(carA);
+            field.Cars.Add(carB);
+            field.Cars.Add(carC);
 
-            var carB = new Car("B");
-            carB.SetPosition("7 8 W");
-            carB.Commands = "FFLFFFFFFF";
-            field.AddCar(carB);
+            var fieldRepo = new FieldRepository();
+            var carRepo = new CarRepository();
+            var simulatorService = new SimulatorService(fieldRepo, carRepo);
+            var act = simulatorService.Simulate(field);
 
-            var carC = new Car("C");
-            carC.SetPosition("7 6 S");
-            carC.Commands = "FFRFFFF";
-            field.AddCar(carC);
-
-            field.Simulate();
             Assert.AreEqual(carA.Collide.By.Name, carC.Name);
             Assert.AreEqual(carC.Collide.By.Name, carA.Name);
             Assert.AreEqual(4, carA.Collide.Position.X);
@@ -85,23 +84,19 @@ namespace AutoDrivingCar.Tests
             Assert.AreEqual('S', carB.Direction);
         }
 
-
         [TestMethod()]
         public void CollidateTest()
         {
-            Field field = new Field();
-            field.MaxBoundary = new Point(10, 10);
-            var carA = new Car("A");
-            carA.SetPosition("1 2 N");
-            carA.Commands = "FFRFFFRRLF";
-            field.AddCar(carA);
+            var carA = new Car() { Name = "A", Position = new Point(1, 2), Direction = 'N', Commands = "FFRFFFRRLF" };
+            var carB = new Car() { Name = "B", Position = new Point(6, 8), Direction = 'W', Commands = "FFLFFFFFFF" };
+            var field = new Field() { MaxBoundary = new Point(10, 10) };
+            field.Cars.Add(carA);
+            field.Cars.Add(carB);
+            var fieldRepo = new FieldRepository();
+            var carRepo = new CarRepository();
+            var simulatorService = new SimulatorService(fieldRepo, carRepo);
+            var act = simulatorService.Simulate(field);
 
-            var carB = new Car("B");
-            carB.SetPosition("6 8 W");
-            carB.Commands = "FFLFFFFFFF";
-            field.AddCar(carB);
-
-            field.Simulate();
             Assert.AreEqual(carA.Collide.By.Name, carB.Name);
             Assert.AreEqual(4, carA.Collide.Position.X);
             Assert.AreEqual(4, carA.Collide.Position.Y);
@@ -111,24 +106,18 @@ namespace AutoDrivingCar.Tests
         [TestMethod()]
         public void CollidateThreeCarsTest()
         {
-            Field field = new Field();
-            field.MaxBoundary = new Point(10, 10);
-            var carA = new Car("A");
-            carA.SetPosition("1 2 N");
-            carA.Commands = "FFRFFFRRLF";
-            field.AddCar(carA);
+            var carA = new Car() { Name = "A", Position = new Point(1, 2), Direction = 'N', Commands = "FFRFFFRRLF" };
+            var carB = new Car() { Name = "B", Position = new Point(6, 8), Direction = 'W', Commands = "FFLFFFFFFF" };
+            var carC = new Car() { Name = "C", Position = new Point(7, 6), Direction = 'S', Commands = "FFRFFFF" };
+            var field = new Field() { MaxBoundary = new Point(10, 10) };
+            field.Cars.Add(carA);
+            field.Cars.Add(carB);
+            field.Cars.Add(carC);
 
-            var carB = new Car("B");
-            carB.SetPosition("6 8 W");
-            carB.Commands = "FFLFFFFFFF";
-            field.AddCar(carB);
-
-            var carC = new Car("C");
-            carC.SetPosition("7 6 S");
-            carC.Commands = "FFRFFFF";
-            field.AddCar(carC);
-
-            field.Simulate();
+            var fieldRepo = new FieldRepository();
+            var carRepo = new CarRepository();
+            var simulatorService = new SimulatorService(fieldRepo, carRepo);
+            var act = simulatorService.Simulate(field);
             Assert.AreEqual(carA.Collide.By.Name, carC.Name);
             Assert.AreEqual(carC.Collide.By.Name, carA.Name);
             Assert.AreEqual(4, carA.Collide.Position.X);
@@ -141,14 +130,15 @@ namespace AutoDrivingCar.Tests
         [TestMethod()]
         public void BeyondBoundaryNorthTest()
         {
-            Field field = new Field();
-            field.MaxBoundary = new Point(5, 5);
-            var carA = new Car("A");
-            carA.SetPosition("2 5 N");
-            carA.Commands = "FF";
-            field.AddCar(carA);
+            var carA = new Car() { Name = "A", Position = new Point(2, 5), Direction = 'N', Commands = "FF" };
+            var field = new Field() { MaxBoundary = new Point(5, 5) };
+            field.Cars.Add(carA);
 
-            field.Simulate();
+            var fieldRepo = new FieldRepository();
+            var carRepo = new CarRepository();
+            var simulatorService = new SimulatorService(fieldRepo, carRepo);
+            var act = simulatorService.Simulate(field);
+
             Assert.AreEqual(5, carA.Position.Y);
         }
 
@@ -156,42 +146,42 @@ namespace AutoDrivingCar.Tests
         [TestMethod()]
         public void BeyondBoundarySouthTest()
         {
-            Field field = new Field();
-            field.MaxBoundary = new Point(5, 5);
-            var carA = new Car("A");
-            carA.SetPosition("2 0 S");
-            carA.Commands = "FF";
-            field.AddCar(carA);
+            var carA = new Car() { Name = "A", Position = new Point(2, 0), Direction = 'S', Commands = "FF" };
+            var field = new Field() { MaxBoundary = new Point(5, 5) };
+            field.Cars.Add(carA);
 
-            field.Simulate();
+            var fieldRepo = new FieldRepository();
+            var carRepo = new CarRepository();
+            var simulatorService = new SimulatorService(fieldRepo, carRepo);
+            var act = simulatorService.Simulate(field);
             Assert.AreEqual(0, carA.Position.Y);
         }
 
         [TestMethod()]
         public void BeyondBoundaryWestTest()
         {
-            Field field = new Field();
-            field.MaxBoundary = new Point(5, 5);
-            var carA = new Car("A");
-            carA.SetPosition("0 2 W");
-            carA.Commands = "FF";
-            field.AddCar(carA);
+            var carA = new Car() { Name = "A", Position = new Point(0, 2), Direction = 'W', Commands = "FF" };
+            var field = new Field() { MaxBoundary = new Point(10, 10) };
+            field.Cars.Add(carA);
 
-            field.Simulate();
+            var fieldRepo = new FieldRepository();
+            var carRepo = new CarRepository();
+            var simulatorService = new SimulatorService(fieldRepo, carRepo);
+            var act = simulatorService.Simulate(field);
             Assert.AreEqual(0, carA.Position.X);
         }
 
         [TestMethod()]
         public void BeyondBoundaryEastTest()
         {
-            Field field = new Field();
-            field.MaxBoundary = new Point(5, 5);
-            var carA = new Car("A");
-            carA.SetPosition("5 0 E");
-            carA.Commands = "FF";
-            field.AddCar(carA);
+            var carA = new Car() { Name = "A", Position = new Point(5, 0), Direction = 'E', Commands = "FF" };
+            var field = new Field() { MaxBoundary = new Point(5, 5) };
+            field.Cars.Add(carA);
 
-            field.Simulate();
+            var fieldRepo = new FieldRepository();
+            var carRepo = new CarRepository();
+            var simulatorService = new SimulatorService(fieldRepo, carRepo);
+            var act = simulatorService.Simulate(field);
             Assert.AreEqual(5, carA.Position.X);
         }
 
@@ -199,12 +189,9 @@ namespace AutoDrivingCar.Tests
         [TestMethod()]
         public void DuplicatedName()
         {
-            Field field = new Field();
-            field.MaxBoundary = new Point(10, 10);
-            var carA = new Car("A");
-            carA.SetPosition("1 2 N");
-            carA.Commands = "FFRFFFRRLF";
-            field.AddCar(carA);
+            var carA = new Car() { Name = "A", Position = new Point(1, 2), Direction = 'N', Commands = "FFRFFFRRLF" };
+            var field = new Field() { MaxBoundary = new Point(10, 10) };
+            field.Cars.Add(carA);
 
             Assert.IsTrue(field.IsNameDuplicated("A"));
         }

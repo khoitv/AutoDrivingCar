@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AutoDrivingCar
+namespace Application.Commons
 {
-    internal class CompassHelper
+    public class CompassHelper
     {
         private static char[] Directions = { Constants.N, Constants.E, Constants.S, Constants.W };
         public static char DegreesToCompass(int degree)
